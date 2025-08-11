@@ -1,0 +1,6 @@
+flask
+pypdf2
+rank-bm25
+openai
+python-dotenv
+flask-cors
