@@ -77,7 +77,7 @@ for i in {1..30}; do
   fi
 done
 
-log "Frontend should be available on port 80."
+log "Frontend should be available on port 8080."
 
 # 6) Optional: create systemd unit file
 if [ "${SETUP_SYSTEMD:-false}" = "true" ]; then
