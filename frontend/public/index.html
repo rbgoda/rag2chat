@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RAG2 Chat</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
+    .container { max-width: 780px; margin: 40px auto; padding: 24px; background: #111827; border-radius: 12px; border: 1px solid #1f2937; }
+    h1 { margin: 0 0 16px; font-size: 24px; }
+    textarea { width: 100%; min-height: 120px; border-radius: 8px; border: 1px solid #374151; background: #0b1220; color: #e2e8f0; padding: 12px; resize: vertical; }
+    .row { display: flex; gap: 12px; margin-top: 12px; }
+    input[type=file] { color: #e2e8f0; }
+    button { background: #2563eb; color: white; border: none; border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    pre { white-space: pre-wrap; word-wrap: break-word; background: #0b1220; padding: 12px; border-radius: 8px; border: 1px solid #374151; }
+    label { display: block; margin: 16px 0 8px; color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>RAG2 Chat</h1>
+    <div id="status"></div>
+
+    <label for="file">Upload a PDF</label>
+    <input id="file" type="file" accept="application/pdf" />
+    <div class="row">
+      <button id="uploadBtn">Upload</button>
+    </div>
+
+    <label for="question">Ask a question</label>
+    <textarea id="question" placeholder="Type your question..."></textarea>
+    <div class="row">
+      <button id="askBtn">Ask</button>
+    </div>
+
+    <h3>Answer</h3>
+    <pre id="answer"></pre>
+  </div>
+
+  <script>
+    const status = document.getElementById('status');
+    const fileInput = document.getElementById('file');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const question = document.getElementById('question');
+    const askBtn = document.getElementById('askBtn');
+    const answer = document.getElementById('answer');
+
+    const backend = window.location.origin.replace(/:\d+$/, ':5000');
+
+    uploadBtn.onclick = async () => {
+      const file = fileInput.files[0];
+      if (!file) { status.textContent = 'Select a PDF first'; return; }
+      uploadBtn.disabled = true;
+      const form = new FormData();
+      form.append('file', file);
+      try {
+        const res = await fetch(`${backend}/upload`, { method: 'POST', body: form });
+        const data = await res.json();
+        status.textContent = data.message || data.error || 'Uploaded';
+      } catch (e) {
+        status.textContent = 'Upload failed';
+      } finally {
+        uploadBtn.disabled = false;
+      }
+    };
+
+    askBtn.onclick = async () => {
+      const q = question.value.trim();
+      if (!q) { status.textContent = 'Type a question'; return; }
+      askBtn.disabled = true;
+      try {
+        const res = await fetch(`${backend}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: q })
+        });
+        const data = await res.json();
+        answer.textContent = data.answer || data.error || 'No answer';
+      } catch (e) {
+        answer.textContent = 'Request failed';
+      } finally {
+        askBtn.disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>
