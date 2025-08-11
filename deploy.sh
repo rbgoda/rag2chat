@@ -47,6 +47,11 @@ mkdir -p "$PROJECT_ROOT/backend/uploads"
 
 # 4) Build and start services
 log "Validating env and starting containers..."
+# Normalize Windows CRLF to Unix LF in .env if present
+if grep -q $'\r' "$BACKEND_ENV" 2>/dev/null; then
+  log "Converting CRLF to LF in backend/.env"
+  sed -i 's/\r$//' "$BACKEND_ENV"
+fi
 set -a
 . "$BACKEND_ENV"
 set +a
